@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Mavlink frsky telemetry sport by lvale</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="without-description">
+        <h1>Mavlink frsky telemetry sport</h1>
+        <p></p>
+        <p class="view"><a href="https://github.com/lvale/MavLink_FrSkySPort">View the Project on GitHub <small>lvale/MavLink_FrSkySPort</small></a></p>
+        <ul>
+          <li><a href="https://github.com/lvale/MavLink_FrSkySPort/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/lvale/MavLink_FrSkySPort/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/lvale/MavLink_FrSkySPort">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="mavlink_frskysport" class="anchor" href="#mavlink_frskysport"><span class="octicon octicon-link"></span></a>MavLink_FrSkySPort</h1>
+
+<p>This is a modified version of the mavlink to frsky s.port code found here:
+<a href="http://diydrones.com/forum/topics/amp-to-frsky-x8r-sport-converter">http://diydrones.com/forum/topics/amp-to-frsky-x8r-sport-converter</a></p>
+
+<p>It's based on the official 1.3 version.</p>
+
+<p>You'll need a Flight Controller that outputs Mavlink messages (like an APM 2.x or the PixHawk), a compatible X series receiver from FrSky that can output Smart Port telemetry data, like the X8R, and a Teensy 3.1 micro controller. And a FrSky radio transmitter (like the Taranis X9D).</p>
+
+<p>It's assumed you know how to configure your Taranis X9D to receive telemetry data.</p>
+
+<p>All testing is being done on a PixHawk flight controller, a Teensy 3.1, a X8R receiver, and a Taranis Radio Tx. </p>
+
+<p>As the projects that serve as base for this are constantly evolving it is expected that something might become in-operational with newer versions of either OpenTX or APM.</p>
+
+<p>Current (Sept, 22nd, 2014) versions of OpenTX is 2.0.12 and from APM 3.1.5 (Arducopter)</p>
+
+<p>Changes:</p>
+
+<ul>
+<li>Acc X/Y/Z reports the average vibrations (difference between max/min) instead of actual accelerometer values.</li>
+<li>Reports gps-speed instead of hud-speed.</li>
+<li>Change how the code responds to tx telemetry requests. This fixes the missing cell/cells in the latest open-tx versions.</li>
+<li>Updated the cell detection to minimize the risk of detecting to many cells (unless the battery is low upon connection) and changing the cell count inflight when the battery voltage drops.</li>
+<li>Changed the averaging for voltage/current to be more accurate to the voltage/current fluctuations. Hoping of increasing the accuracy of the mAh-counter. Use FAS as both voltage/current source.</li>
+<li>Delays sending the voltage/current until the voltage reading through mavlink has stabilized. This should minimize the false low battery-warnings upon model powerup.</li>
+<li>GPS hdop on A2</li>
+<li>Temp2 contains both arming status (armed if the value is uneven) and status message number if the text received through mavlink was recognized.</li>
+</ul><p>Lua scripts: Arducopter_Status</p>
+
+<p>Mixer scripts:</p>
+
+<p>ApmTelem.lua:
+This script configures A2 for usage as hdop and exports arming-status as an output. This status can be used to for example control a timer.
+It also publishes a set of methods that can be used by other scripts.</p>
+
+<p>ApmSounds.lua: 
+This is a mixer script that announces (plays a soundfile) when the flightmode changes. Some flightmodes (auto-modes) will be repeated at a given intervall. </p>
+
+<p>Lua telemetry screens:</p>
+
+<p>telem1.lua: 
+Shows status of different parameters received through mavlink. 
+Some of this parameters are current flightmode, gps status, battery status, current consumption and power usage.
+It also displays (briefly) any status messages received from ardupilot.</p>
+
+<p>telem2.lua:
+Shows a log with received status messages from ardupilot. </p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/lvale">lvale</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
