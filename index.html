@@ -52,6 +52,81 @@
 <p>Current (October, 7th, 2014) versions of OpenTX is 2.0.12 and from APM 3.2 RC11 (Arducopter)- (previously also on 3.1.5)</p>
 
 <p>Changes:
+October 9th,</p>
+
+<p>Added a v0.1 of DisplayAPMPosition telemetry script. It is completely self contained (except for the images and sounds).</p>
+
+<p>It must me placed on a directory on the SD Card that corresponds to the model name (no spaces allowed).</p>
+
+<p>This telemetry screen tries to report the data received in a easy way. </p>
+
+<p>Due to the restricted screen space I didn't make descriptive labels on the values but tried to group them on a logical (to me) way.</p>
+
+<p>Also, this script relies heavily on voice alerts and prompts.</p>
+
+<p>I use a two switch combination (SWE and SWF) to change flight modes, that gives me the 6 flight modes. The combination of the 2 switches activate six Logical Switches on the Taranis - The Logical Switches MUST be L1 to L6.</p>
+
+<p>I could not find a way to have the Flight Controller report the settings for some parameters, like which 6 Flight Modes are defined so the script must be updated with the Flight Mode Numbers that correspond to each Logical Switch.</p>
+
+<p>But the screen deserves some explanation, so here goes:</p>
+
+<p>A-Current Flight Mode Active as reported by the Flight Controller. If blinking the vehicle is not Armed.</p>
+
+<p>B-Current Flight Mode Timer. Each Flight Mode has its own timer. The timer stops if the vehicle is not Armed.</p>
+
+<p>C-Radio Transmitter Battery Voltage.</p>
+
+<p>D-RSSI value</p>
+
+<p>E-Estimated Flight Time. </p>
+
+<p>F-Available Vehicle battery capacity. </p>
+
+<p>E and F are inter related. When the vehicle is armed, the script checks the voltage and calculates the number of cells and estimates the status of the vehicle battery. This is then combined with the available capacity reported by the flight controller.
+E is calculated based on the rate of decay of reported capacity.
+These are highly experimental and not to be considered real, but simple estimates.</p>
+
+<p>G-Actual consumed power in mAh</p>
+
+<p>H-Actual power output in Watts (VxA)</p>
+
+<p>I-Reported Flight Battery Voltage</p>
+
+<p>J-Reported Flight Battery Current</p>
+
+<p>K-Vertical Gauge that shows the actual Throttle output (not the Throttle stick position but the actual output reported by the Flight Controller)</p>
+
+<p>L-Vehicle Height</p>
+
+<p>M-Max Height</p>
+
+<p>N-Vertical speed</p>
+
+<p>O-Vertical Speed Indicator (up or down)</p>
+
+<p>P-Heading</p>
+
+<p>Q-Roll angle</p>
+
+<p>R-Armed Time Timer - Starts and stops when the Vehicle is armed/disarmed</p>
+
+<p>S-Speed</p>
+
+<p>T-Pitch Indicator. When over 45 degrees the indicator is replaced by 3 up or 3 down indicators</p>
+
+<p>U-GPS Indicator. Three different graphics dependent on GPS status, 3D, 2D or no status</p>
+
+<p>V-HDop indicator. Blinks when over 2</p>
+
+<p>W-Number of reported satellites</p>
+
+<p>X-Distance to home (Distance to the point the Taranis received a good satellite fix)</p>
+
+<p>Y-Heading to home (Heading to the point the Taranis received a good satellite fix)</p>
+
+<p>When changing flight modes the radio says Flight Mode X engaged when the switch is moved and Flight Mode X active when the Flight Controller reports it. If there is a mismatch or the Flight Controller doesn't not report the Flight Mode as set by the switches you'll be notified.</p>
+
+<p>Changes:
 October 7th,</p>
 
 <p>the following data is being decoded on the Teensy and sent to the Taranis:</p>
