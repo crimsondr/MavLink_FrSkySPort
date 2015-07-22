@@ -56,7 +56,7 @@ AccZ            ( Z Axis average vibration m/s?)
 #include "FrSkySPort.h"
 
 #define debugSerial           Serial
-#define _MavLinkSerial      Serial2
+#define _MavLinkSerial      Serial3
 #define START                   1
 #define MSG_RATE            10              // Hertz
 
