@@ -22,6 +22,7 @@
 
 --Init Variables
 	local SumFlight = 0
+        local PersitentSumFlight = model.getTimer(1).value
 	local lastarmed = 0
 	local apmarmed = 0
 	local FmodeNr = 13 -- This is an invalid flight number when no data available
@@ -84,7 +85,7 @@
 	
 	--Timer 1 is accumulated time per flight mode
 	
-	--model.setTimer(1, {mode=0, start=0, value= 0, countdownBeep=0, minuteBeep=0, persistent=1})
+	--model.setTimer(1, {mode=0, start=0, value= model.getTimer(1).value countdownBeep=0, minuteBeep=0, persistent=1})
 	
 --Init Flight Tables
 	local FlightMode = {
@@ -340,7 +341,11 @@
 	  lcd.drawText(lcd.getLastPos(),35,"m",SMLSIZE)
 	  
 	  --Armed time
-	  lcd.drawTimer(htsapaneloffset + 106,42,model.getTimer(0).value,MIDSIZE)
+	  lcd.drawTimer(htsapaneloffset + 80,42,model.getTimer(0).value,MIDSIZE)
+          lcd.drawNumber(lcd.getLastPos()+3,45,model.getTimer(1).value/360.0,SMLSIZE+LEFT+PREC1)
+          --lcd.drawTimer(lcd.getLastPos()+3,45,model.getTimer(1).value,SMLSIZE)
+          
+          lcd.drawText(lcd.getLastPos()+3,45,"Std.",SMLSIZE)
 	  
 	  lcd.drawText(htsapaneloffset + 76,56,"Speed",SMLSIZE)
 	  lcd.drawNumber(lcd.getLastPos()+8, 53,getValue(211),MIDSIZE+LEFT)
@@ -427,7 +432,7 @@
 	  
 	  t2 = getValue(210)
 	  apmarmed = t2%0x02
-	 
+          
 	  --prearmheading =63
 	  if apmarmed ~=1 then -- report last heading bevor arming. this can used for display position relative to copter
 	    prearmheading=getValue(223)
@@ -439,13 +444,16 @@
 	    lastarmed=apmarmed
 	    if apmarmed==1 then
 	      model.setTimer(0,{ mode=1, start=0, value= SumFlight, countdownBeep=0, minuteBeep=1, persistent=1 })
+              model.setTimer(1,{ mode=1, start=0, value= PersitentSumFlight, countdownBeep=0, minuteBeep=0, persistent=2 })
 	      playFile("SOUNDS/en/SARM.wav")
 	      playFile("/SOUNDS/en/AVFM"..(FmodeNr-1).."A.wav")
 	      
 	    else
 	      
 	      SumFlight = model.getTimer(0).value
+              PersitentSumFlight = model.getTimer(1).value
 	      model.setTimer(0,{ mode=0, start=0, value= model.getTimer(0).value, countdownBeep=0, minuteBeep=1, persistent=1 })
+              model.setTimer(1,{ mode=0, start=0, value= model.getTimer(1).value, countdownBeep=0, minuteBeep=0, persistent=2 })
 	      
 	      playFile("SOUNDS/en/SDISAR.wav")
 	    end
@@ -544,4 +552,5 @@
 	end
 
 	return {run=run, background=background}
+
 	
