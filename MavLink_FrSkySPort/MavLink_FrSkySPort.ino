@@ -71,7 +71,7 @@ AccZ            ( Z Axis average vibration m/s?)
 //#define DEBUG_FRSKY_SENSOR_REQUEST
 
 //#define DEBUG_AVERAGE_VOLTAGE
-#define DEBUG_PARSE_STATUS_TEXT
+//#define DEBUG_PARSE_STATUS_TEXT
 
 /// Wolke lipo-single-cell-monitor
 /*
@@ -188,15 +188,15 @@ mavlink_message_t msg;
 /// Wolke lipo-single-cell-monitor
 #ifdef USE_SINGLE_CELL_MONITOR
 
-//cell voltage divider. this is dependent from your resitor voltage divider network
+//cell voltage divider. this is dependent from your resitor voltage divider network 13bit
 double LIPOCELL_1TO8[13] =
 {
-  1897.85344189,// 10bit 237.350026082,
-  926.799312208,// 10bit 116.006256517,
-  618.198183455,// 10bit 77.3509473318,
-  470.134166514,// 10bit 58.7966886122,
-  370.317778975,// 10bit 46.3358699051,
-  315.045617465,// 10bit 39.4176445024,
+  1913.528953519,
+  933.688035297,
+  622.955076603,
+  473.787040052,
+  373.105567418,
+  317.423580786,
   0.0, // diverders 7-12 not defined because my network includes only 6 voltage dividers
   0.0,
   0.0,
@@ -271,16 +271,23 @@ void loop()  {
     smoothedVal[i] = ( aread[i] * (1 - lp_filter_val)) + (smoothedVal[i]  *  lp_filter_val);
     aread[i] = round(smoothedVal[i]);
     cell[i] = double (aread[i]/individualcelldivider[i]) * 1000;
+
+    //debugSerial.print( cell[i]);
+    //debugSerial.print( ", ");
+
     if( i == 0 ) zelle[i] = round(cell[i]);
     else zelle[i] =  round(cell[i] - cell[i-1]);
   }
   alllipocells = cell[cells_in_use -1];
 
+  //debugSerial.println(", end");
+
   /*
   debugSerial.println(aread[0]);
   debugSerial.println(cell[0]);
   debugSerial.println("-------");
- 
+ */
+ /*
   for(int i = 0; i < MAXCELLS; i++){
     
     debugSerial.print( aread[i]);
