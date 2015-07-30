@@ -299,8 +299,7 @@ void loop()  {
   debugSerial.println(aread[0]);
   debugSerial.println(cell[0]);
   debugSerial.println("-------");
- */
- /*
+
   for(int i = 0; i < MAXCELLS; i++){
     
     debugSerial.print( aread[i]);
