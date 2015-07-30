@@ -71,7 +71,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #ifdef SENSOR_ID_FLVSS
   case SENSOR_ID_FLVSS:
     {
-      //printDebugPackageSend("FLVSS", nextFLVSS+1, 3);
+      printDebugPackageSend("FLVSS", nextFLVSS+1, 3);
       // We need cells to continue
       if(ap_cell_count < 1)
         break;
@@ -177,7 +177,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #ifdef SENSOR_ID_VARIO
   case SENSOR_ID_VARIO:
     {
-      //printDebugPackageSend("VARIO", nextVARIO+1, 2);
+      printDebugPackageSend("VARIO", nextVARIO+1, 2);
       switch(nextVARIO)
       {
       case 0:
@@ -195,7 +195,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #ifdef SENSOR_ID_FAS
   case SENSOR_ID_FAS:
     {
-      //printDebugPackageSend("FAS", nextFAS+1, 2);
+      printDebugPackageSend("FAS", nextFAS+1, 2);
       // Use average of atleast 2 samples
       if(currentCount < 2)
         return;
@@ -224,7 +224,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #ifdef SENSOR_ID_GPS
   case SENSOR_ID_GPS:
     {
-      //printDebugPackageSend("GPS", nextGPS+1, 5);
+      printDebugPackageSend("GPS", nextGPS+1, 5);
       switch(nextGPS)
       {
       case 0:        // Sends the ap_longitude value, setting bit 31 high
@@ -271,7 +271,7 @@ void FrSkySPort_ProcessSensorRequest(uint8_t sensorId)
   #endif
   #ifdef SENSOR_ID_RPM
   case SENSOR_ID_RPM:
-    //printDebugPackageSend("RPM", 1, 1);
+    printDebugPackageSend("RPM", 1, 1);
     FrSkySPort_SendPackage(FR_ID_RPM,ap_throttle * 200+ap_battery_remaining*2);   //  * 2 if number of blades on Taranis is set to 2 + First 4 digits reserved for battery remaining in %
     break;
     // Since I don't know the app-id for these values, I just use these two "random"
@@ -351,7 +351,7 @@ uint32_t handle_A2_A3_value(uint32_t value)
 }
 
 // ***********************************************************************
-void printDebugPackageSend(char* pkg_name, uint8_t pkg_nr, uint8_t pkg_max)
+void printDebugPackageSend(const char* pkg_name, uint8_t pkg_nr, uint8_t pkg_max)
 {
 #ifdef DEBUG_FRSKY_SENSOR_REQUEST
   debugSerial.print(millis());
