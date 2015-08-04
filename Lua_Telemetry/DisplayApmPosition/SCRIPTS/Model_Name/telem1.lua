@@ -338,8 +338,10 @@
 	  lcd.drawNumber(lcd.getLastPos()+8,35,getValue(237),SMLSIZE+LEFT)
 	  lcd.drawText(lcd.getLastPos(),35,"m",SMLSIZE)
 	  
-	  --Armed time
-	  lcd.drawTimer(htsapaneloffset + 106,42,model.getTimer(0).value,MIDSIZE)
+	  --Timer1
+	  lcd.drawTimer(htsapaneloffset + 81,42,model.getTimer(0).value,MIDSIZE)
+	  --Timer2
+	  lcd.drawTimer(htsapaneloffset + 123,42,model.getTimer(1).value,MIDSIZE)
 	  
 	  lcd.drawText(htsapaneloffset + 76,56,"Speed",SMLSIZE)
 	  lcd.drawNumber(lcd.getLastPos()+8, 53,getValue(211),MIDSIZE+LEFT)
@@ -358,6 +360,7 @@
 	    lcd.drawText(1, 0, (FlightMode[FmodeNr]), INVERS+BLINK)
 	  end
 	  
+	  lcd.drawChannel(104, 0, 190, INVERS)
 	  lcd.drawText(134, 0, "TX:", INVERS)
 	  lcd.drawNumber(160, 0, getValue(189)*10,0+PREC1+INVERS)
 	  lcd.drawText(lcd.getLastPos(), 0, "v", INVERS)
