@@ -21,6 +21,7 @@
 
 
 --Init Variables
+	local rssi = 0
 	local lastarmed = 0
 	local apmarmed = 0
 	local FmodeNr = 13 -- This is an invalid flight number when no data available
@@ -341,7 +342,7 @@
 	  --Timer1
 	  lcd.drawTimer(htsapaneloffset + 81,42,model.getTimer(0).value,MIDSIZE)
 	  --Timer2
-	  lcd.drawTimer(htsapaneloffset + 123,42,model.getTimer(1).value,MIDSIZE)
+	  lcd.drawTimer(htsapaneloffset + 118,42,model.getTimer(1).value,MIDSIZE)
 	  
 	  lcd.drawText(htsapaneloffset + 76,56,"Speed",SMLSIZE)
 	  lcd.drawNumber(lcd.getLastPos()+8, 53,getValue(211),MIDSIZE+LEFT)
@@ -360,7 +361,7 @@
 	    lcd.drawText(1, 0, (FlightMode[FmodeNr]), INVERS+BLINK)
 	  end
 	  
-	  lcd.drawChannel(104, 0, 190, INVERS)
+	  lcd.drawChannel(125, 0, 190, INVERS)
 	  lcd.drawText(134, 0, "TX:", INVERS)
 	  lcd.drawNumber(160, 0, getValue(189)*10,0+PREC1+INVERS)
 	  lcd.drawText(lcd.getLastPos(), 0, "v", INVERS)
@@ -425,8 +426,10 @@
 	
 --APM Armed and errors
 	local function armed_status()
-	  if getValue(200) <= 0 then -- only update armed status if we have connection to rx
-	  	break
+
+	  rssi = getValue(200)
+	  if rssi <= 0 then
+	  	return 0
 	  end
 
 	  t2 = getValue(210)
