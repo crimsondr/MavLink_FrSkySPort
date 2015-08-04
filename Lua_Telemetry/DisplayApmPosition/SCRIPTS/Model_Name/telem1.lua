@@ -21,7 +21,6 @@
 
 
 --Init Variables
-	local SumFlight = 0
 	local lastarmed = 0
 	local apmarmed = 0
 	local FmodeNr = 13 -- This is an invalid flight number when no data available
@@ -56,7 +55,7 @@
 	local hypdist = 0
 	local battWhmax = 0
 	local maxconsume = 0
-	local whconsumed = 0
+	local mahconsumed = 0
 	local batteryreachmaxWH = 0
 	
 	-- Temporary text attribute
@@ -79,8 +78,6 @@
 	
 	
 	--Timer 0 is time while vehicle is armed
-	
-	model.setTimer(0, {mode=0, start=0, value= 0, countdownBeep=0, minuteBeep=1, persistent=1})
 	
 	--Timer 1 is accumulated time per flight mode
 	
@@ -179,17 +176,16 @@
 	
 	
 -- draw Wh Gauge	
-	local function drawWhGauge()
-	   
-	   whconsumed = watthours + ( watthours * ( model.getGlobalVariable(8, 1)/100) )
-	   if whconsumed >= maxconsume then
-	      whconsumed = maxconsume
+	local function drawmAhGauge()
+	   mahconsumed = consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) )
+	   if mahconsumed >= maxconsume then
+	      mahconsumed = maxconsume
 	   end
 	   
 	   --lcd.drawNumber(93,1,whconsumed,0+INVERS)
 	   
 	   lcd.drawFilledRectangle(74,9,11,55,INVERS)
-	   lcd.drawFilledRectangle(75,9,9, (whconsumed - 0)* ( 55 - 0 ) / (maxconsume - 0) + 0, 0)
+	   lcd.drawFilledRectangle(75,9,9, (mahconsumed - 0)* ( 55 - 0 ) / (maxconsume - 0) + 0, 0)
 	end
 	
 	
@@ -391,12 +387,12 @@
 	  lcd.drawNumber(67,21,getValue(219),MIDSIZE)
 	  lcd.drawText(lcd.getLastPos(),22,"W",0)
 	  
-	  lcd.drawNumber(1,33,consumption + ( consumption * ( model.getGlobalVariable(8, 0)/100 ) ),MIDSIZE+LEFT)
+	  lcd.drawNumber(1,33,consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ),MIDSIZE+LEFT)
 	  xposCons=lcd.getLastPos()
 	  lcd.drawText(xposCons,32,"m",SMLSIZE)
 	  lcd.drawText(xposCons,38,"Ah",SMLSIZE)
 	  
-	  lcd.drawNumber(67,33,( watthours + ( watthours * ( model.getGlobalVariable(8, 1)/100) ) ) *10 ,MIDSIZE+PREC1)
+	  lcd.drawNumber(67,33,( watthours + ( watthours * ( model.getGlobalVariable(8, 2)/100) ) ) *10 ,MIDSIZE+PREC1)
 	  xposCons=lcd.getLastPos()
 	  lcd.drawText(xposCons,32,"w",SMLSIZE)
 	  lcd.drawText(xposCons,38,"h",SMLSIZE)
@@ -407,7 +403,7 @@
 	  lcd.drawText(xposCons,48,"V",SMLSIZE)
 	  lcd.drawText(xposCons,56,"C-min",SMLSIZE)
 	end
-	
+		
 	
 	-- Calculate watthours
 	local function calcWattHs()
@@ -418,7 +414,6 @@
 	    localtime = 0
 	  end  
 	  oldlocaltime = getTime()
-	  maxconsume = model.getGlobalVariable(8, 2)
 	end
 	
 	
@@ -438,14 +433,10 @@
 	  if lastarmed~=apmarmed then
 	    lastarmed=apmarmed
 	    if apmarmed==1 then
-	      model.setTimer(0,{ mode=1, start=0, value= SumFlight, countdownBeep=0, minuteBeep=1, persistent=1 })
 	      playFile("SOUNDS/en/SARM.wav")
 	      playFile("/SOUNDS/en/AVFM"..(FmodeNr-1).."A.wav")
 	      
 	    else
-	      
-	      SumFlight = model.getTimer(0).value
-	      model.setTimer(0,{ mode=0, start=0, value= model.getTimer(0).value, countdownBeep=0, minuteBeep=1, persistent=1 })
 	      
 	      playFile("SOUNDS/en/SDISAR.wav")
 	    end
@@ -498,10 +489,12 @@
 	end
 	
 	
--- play alarm wh reach maximum level
-	local function playMaxWhReached()
+-- play alarm mAh reach maximum level
+	local function playMaxmAhReached()
+
+	  maxconsume = model.getGlobalVariable(8, 0)
 	  
-	  if (watthours  + ( watthours * ( model.getGlobalVariable(8, 1)/100) ) ) >= maxconsume then
+	  if (consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ) ) >= maxconsume then
 	    localtimetwo = localtimetwo + (getTime() - oldlocaltimetwo)
 	    if localtimetwo >=800 then --8s
 	      playFile("/SOUNDS/en/ALARM3K.wav")
@@ -517,10 +510,10 @@
 	  armed_status()
 	  
 	  Flight_modes()
-	  
+	   
 	  calcWattHs()
 	  
-	  playMaxWhReached()
+	  playMaxmAhReached()
 	  
 	end
 	
@@ -539,7 +532,7 @@
 	  
 	  drawArrow()
 	  
-	  drawWhGauge()
+	  drawmAhGauge()
 
 	end
 
