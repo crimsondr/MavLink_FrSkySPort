@@ -495,7 +495,7 @@
 -- play alarm mAh reach maximum level
 	local function playMaxmAhReached()
 
-	  maxconsume = model.getGlobalVariable(8, 0)
+	  maxconsume = model.getGlobalVariable(8, 0) * 0.8
 	  
 	  if (consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ) ) >= maxconsume then
 	    localtimetwo = localtimetwo + (getTime() - oldlocaltimetwo)
