@@ -521,8 +521,8 @@
 -- play alarm mAh reach warning level
 	local function playWarnmAhReached()
 
-	  warnconsume = model.getGlobalVariable(8, 0) * 0.75
-	  maxconsume = model.getGlobalVariable(8, 0) * 0.8
+	  warnconsume = model.getGlobalVariable(8, 0) * 100 * 0.75
+	  maxconsume = model.getGlobalVariable(8, 0) * 100 * 0.8
 
 	  if warnconsume <= 0 then
 	  	return 0
