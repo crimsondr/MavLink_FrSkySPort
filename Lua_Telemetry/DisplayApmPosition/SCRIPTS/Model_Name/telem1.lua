@@ -419,7 +419,10 @@
 	
 --APM Armed and errors
 	local function armed_status()
-	  
+	  if getValue(200) <= 0 then -- only update armed status if we have connection to rx
+	  	break
+	  end
+
 	  t2 = getValue(210)
 	  apmarmed = t2%0x02
 	 
