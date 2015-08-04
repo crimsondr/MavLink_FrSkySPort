@@ -43,6 +43,8 @@
 	local oldlocaltime= 0
 	local localtimetwo = 0
 	local oldlocaltimetwo= 0
+	local localtimethree = 0
+	local oldlocaltimethree= 0
 	local pilotlat = 0
 	local pilotlon = 0
 	local curlat = 0
@@ -54,6 +56,7 @@
 	local status_textnr = 0
 	local hypdist = 0
 	local battWhmax = 0
+	local warnconsume = 0
 	local maxconsume = 0
 	local mahconsumed = 0
 	local batteryreachmaxWH = 0
@@ -494,16 +497,32 @@
 	
 -- play alarm mAh reach maximum level
 	local function playMaxmAhReached()
-
-	  maxconsume = model.getGlobalVariable(8, 0) * 0.8
 	  
 	  if (consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ) ) >= maxconsume then
 	    localtimetwo = localtimetwo + (getTime() - oldlocaltimetwo)
-	    if localtimetwo >=800 then --8s
+	    if localtimetwo >=300 then --3s
 	      playFile("/SOUNDS/en/ALARM3K.wav")
 	      localtimetwo = 0
 	    end
 	    oldlocaltimetwo = getTime()
+	  end
+	end
+	
+-- play alarm mAh reach warning level
+	local function playWarnmAhReached()
+
+	  warnconsume = model.getGlobalVariable(8, 0) * 0.75
+	  maxconsume = model.getGlobalVariable(8, 0) * 0.8
+
+	  mahconsumed = consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) )
+
+	  if mahconsumed < maxconsume and mahconsumed >= warnconsume then
+	    localtimethree = localtimethree + (getTime() - oldlocaltimethree)
+	    if localtimethree >=800 then --8s
+	      playFile("/SOUNDS/en/lowbat.wav")
+	      localtimethree = 0
+	    end
+	    oldlocaltimethree = getTime()
 	  end
 	end
 	
@@ -515,6 +534,8 @@
 	  Flight_modes()
 	   
 	  calcWattHs()
+	  
+	  playWarnmAhReached()
 	  
 	  playMaxmAhReached()
 	  
