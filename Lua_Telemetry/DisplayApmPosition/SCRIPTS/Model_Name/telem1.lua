@@ -426,9 +426,9 @@
 	  lcd.drawText(xposCons,38,"h",SMLSIZE)
 	  
 	   
-	  if maxconsume > 0 and mahconsumed < maxconsume then
+	  if criticalconsume > 0 and mahconsumed < criticalconsume then
 	     spa = model.getTimer(1).value / mahconsumed
-	     secondsremaining = (maxconsume - mahconsumed) * spa
+	     secondsremaining = (criticalconsume - mahconsumed) * spa
 	  else
 	  	 secondsremaining = 0
 	  end
