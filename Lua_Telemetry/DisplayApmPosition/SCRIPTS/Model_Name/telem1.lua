@@ -436,7 +436,7 @@
 	  if secondsremaining > 60 then
 	     lcd.drawTimer(15,47,secondsremaining,DBLSIZE)
 	  else
-	     lcd.drawTimer(15,47,secondsremaining,DBLSIZE+BLINK)
+	     lcd.drawTimer(15,47,secondsremaining,DBLSIZE+BLINK+INVERS)
 	  end
 --	  lcd.drawNumber(50,47,(1 - mahconsumed / maxconsume) * 1000,DBLSIZE+PREC1)
 --	  xposCons=lcd.getLastPos()
