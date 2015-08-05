@@ -21,6 +21,10 @@
 
 
 --Init Variables
+	local spa = 0
+	local secondsremaining = 0
+	local criticalheight = 0
+	local consumedheight = 0
 	local rssi = 0
 	local lastarmed = 0
 	local apmarmed = 0
@@ -58,6 +62,7 @@
 	local hypdist = 0
 	local battWhmax = 0
 	local warnconsume = 0
+	local criticalconsume = 0
 	local maxconsume = 0
 	local mahconsumed = 0
 	local batteryreachmaxWH = 0
@@ -188,8 +193,24 @@
 	   
 	   --lcd.drawNumber(93,1,whconsumed,0+INVERS)
 	   
+	   criticalheight = 0.8 * 55 + 0
+	   consumedheight = (mahconsumed - 0)* ( 55 - 0 ) / (maxconsume - 0) + 0
+
 	   lcd.drawFilledRectangle(74,9,11,55,INVERS)
-	   lcd.drawFilledRectangle(75,9,9, (mahconsumed - 0)* ( 55 - 0 ) / (maxconsume - 0) + 0, 0)
+	   lcd.drawFilledRectangle(75,9,9, consumedheight + 0, 0)
+
+	   if maxconsume > 0 then
+	      lcd.drawNumber(85, 35, (1 - mahconsumed / maxconsume) * 100, SMLSIZE)
+	      lcd.drawLine(75, 34, 83, 34, SOLID, ERASE)
+	      lcd.drawLine(84, 35, 84, 55, SOLID, FORCE)
+	   end
+
+	   if consumedheight < criticalheight then
+	      lcd.drawLine(75, 9 + criticalheight, 83, 9 + criticalheight, SOLID, 0)
+	   elseif consumedheight == criticalheight or consumedheight > criticalheight + 2 then
+	      lcd.drawLine(75, 9 + criticalheight, 83, 9 + criticalheight, SOLID, FORCE)
+	   end
+
 	end
 	
 	
@@ -404,11 +425,18 @@
 	  lcd.drawText(xposCons,32,"w",SMLSIZE)
 	  lcd.drawText(xposCons,38,"h",SMLSIZE)
 	  
-	  
-	  lcd.drawNumber(42,47,getValue(214)*100,DBLSIZE+PREC2)
-	  xposCons=lcd.getLastPos()
-	  lcd.drawText(xposCons,48,"V",SMLSIZE)
-	  lcd.drawText(xposCons,56,"C-min",SMLSIZE)
+	   
+	  if maxconsume > 0 and mahconsumed < maxconsume then
+	     spa = model.getTimer(1).value / mahconsumed
+	     secondsremaining = (maxconsume - mahconsumed) * spa
+	  else
+	  	 secondsremaining = 0
+	  end
+
+	  lcd.drawTimer(15,47,secondsremaining,DBLSIZE)
+--	  lcd.drawNumber(50,47,(1 - mahconsumed / maxconsume) * 1000,DBLSIZE+PREC1)
+--	  xposCons=lcd.getLastPos()
+--	  lcd.drawText(xposCons,48,"%", MIDSIZE)
 	end
 		
 	
@@ -504,11 +532,11 @@
 -- play alarm mAh reach maximum level
 	local function playMaxmAhReached()
 	  
-	  if maxconsume <= 0 then
+	  if criticalconsume <= 0 then
 	  	return 0
 	  end
 
-	  if (consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ) ) >= maxconsume then
+	  if (consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ) ) >= criticalconsume then
 	    localtimetwo = localtimetwo + (getTime() - oldlocaltimetwo)
 	    if localtimetwo >=300 then --3s
 	      playFile("/SOUNDS/en/ALARM3K.wav")
@@ -521,8 +549,9 @@
 -- play alarm mAh reach warning level
 	local function playWarnmAhReached()
 
-	  warnconsume = model.getGlobalVariable(8, 0) * 100 * 0.75
-	  maxconsume = model.getGlobalVariable(8, 0) * 100 * 0.8
+	  maxconsume = model.getGlobalVariable(8, 0) * 100
+	  warnconsume = maxconsume * 0.7
+	  criticalconsume = maxconsume * 0.8
 
 	  if warnconsume <= 0 then
 	  	return 0
@@ -530,7 +559,7 @@
 
 	  mahconsumed = consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) )
 
-	  if mahconsumed < maxconsume and mahconsumed >= warnconsume then
+	  if mahconsumed < criticalconsume and mahconsumed >= warnconsume then
 	    localtimethree = localtimethree + (getTime() - oldlocaltimethree)
 	    if localtimethree >=800 then --8s
 	      playFile("/SOUNDS/en/lowbat.wav")
