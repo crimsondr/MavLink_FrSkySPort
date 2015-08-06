@@ -21,6 +21,7 @@
 
 
 --Init Variables
+	local statsRolled = 0
 	local spa = 0
 	local secondsremaining = 0
 	local criticalheight = 0
@@ -398,7 +399,6 @@
 
 	  --tension=getValue(216) --
 	  --current=getValue(217) ---
-	  consumption=getValue(218)---
 	  --watts=getValue(219) ---
 	  --tension_min=getValue(246) ---
 	  --current_max=getValue(247) ---
@@ -454,8 +454,8 @@
 	  end  
 	  oldlocaltime = getTime()
 	end
-	
-	
+
+
 --APM Armed and errors
 	local function armed_status()
 
@@ -552,6 +552,7 @@
 	
 -- play alarm mAh reach warning level
 	local function playWarnmAhReached()
+	  consumption=getValue(218)
 
 	  maxconsume = model.getGlobalVariable(8, 0) * 100
 	  warnconsume = maxconsume * 0.7
@@ -572,12 +573,34 @@
 	    oldlocaltimethree = getTime()
 	  end
 	end
+
+	local function roll_stats()
+		if statsRolled == 0 and apmarmed == 1 then
+			statsRolled = 1
+
+			for i=7, 0, -1 do
+				for j=0, 3, 1 do
+					model.setGlobalVariable(j, i+1, model.getGlobalVariable(j,i))
+				end
+			end		
+		end
+	end
+
+	local function save_stats()		
+		if statsRolled == 1 then
+			local timerValue = model.getTimer(1).value
+			model.setGlobalVariable(0, 0, math.floor(timerValue / 60) )
+			model.setGlobalVariable(1, 0, timerValue - model.getGlobalVariable(0, 0) * 60 )
+			model.setGlobalVariable(2, 0, model.getGlobalVariable(8, 0) * 10 )
+			model.setGlobalVariable(3, 0, (consumption + ( consumption * ( model.getGlobalVariable(8, 1)/100 ) ) )/10 )
+		end
+	end
 	
 --Background
 	local function background()
-	  
+
 	  armed_status()
-	  
+
 	  Flight_modes()
 	   
 	  calcWattHs()
@@ -586,6 +609,10 @@
 	  
 	  playMaxmAhReached()
 	  
+	  roll_stats()
+
+	  save_stats()
+
 	end
 	
 --Main
