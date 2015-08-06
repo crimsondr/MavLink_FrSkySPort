@@ -433,7 +433,7 @@
 	  	 secondsremaining = 0
 	  end
 
-	  if secondsremaining > 60 then
+	  if secondsremaining > 60  or mahconsumed == 0 or model.getTimer(1).value == 0 then
 	     lcd.drawTimer(15,47,secondsremaining,DBLSIZE)
 	  else
 	     lcd.drawTimer(15,47,secondsremaining,DBLSIZE+BLINK+INVERS)
