@@ -12,187 +12,140 @@
 --  GNU General Public License for more details.
 --
 --  A copy of the GNU General Public License is available at <http://www.gnu.org/licenses/>.
+--    
 
----------------------------------------------------------------------------------------------------      
+local debugLabelWidth = 45
+local debugRowHeight = 7
+local debugColWidth = 40
+local debugColSpacing = 5
+local switch = getValue(99)
+local oldSwitch = switch
+local batteryIndex = 0
 
-local FlightMode = {
-            "Stabilize",
-            "Acro",
-            "Altitude Hold",
-            "Auto",
-            "Guided",
-            "Loiter",
-            "Return to launch",
-            "Circle",
-            "Invalid Mode",
-            "Land",
-            "Optical Loiter",
-            "Drift",
-            "Invalid Mode",
-            "Sport",
-            "Flip Mode",
-            "Auto Tune",
-            "Position Hold"}
-local AsciiMap = {
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-            "G",
-            "H",
-            "I",
-            "J",
-            "K",
-            "L",
-            "M",
-            "N",
-            "O",
-            "P",
-            "Q",
-            "R",
-            "S",
-            "T",
-            "U",
-            "V",
-            "W",
-            "X",
-            "Y",
-            "Z"}
-
-local MESSAGEBUFFERSIZE = 5
-local messageArray = {}
-local messageFirst = 0
-local messageNext = 0
-local messageLatestTimestamp = 0
-local messageBuffer = ""
-local messageBufferSize = 0
-local previousMessageWord = 0
-local footerMessage = ""
-local messagePriority = -1
-local lastTime = 0
-
-local function char(c) 
-    if c >= 48 and c <= 57 then
-      return "0" + (c - 48)
-    elseif c >= 65 and c <= 90 then
-      return AsciiMap[c - 64]
-    elseif c >= 97 and c <= 122 then 
-      return AsciiMap[c - 96]    
-    elseif c == 32 then
-      return " "
-    elseif c == 46 then
-      return "."
-    else
-      return ""
-    end
+local function printTimer(col, row, token, attr)
+	local val = token
+	local x = col
+    local y = row * debugRowHeight - 6
+    lcd.drawTimer(x, y, val, SMLSIZE + attr)
 end
 
-local function getLatestMessage()
-    if messageFirst == messageNext then
-        return ""
-    end
-    return messageArray[((messageNext - 1) % MESSAGEBUFFERSIZE) + 1]
+local function printText(col, row, val, attr)
+	local x = col
+    local y = row * debugRowHeight - 6
+    lcd.drawText(x, y, val, SMLSIZE + attr)
 end
 
-local function checkForNewMessage()
-    local msg = getTextMessage()
-    if msg ~= "" then
-        if msg ~= getLatestMessage() then
-            messageArray[(messageNext % MESSAGEBUFFERSIZE) + 1] = msg
-            messageNext = messageNext + 1
-            if (messageNext - messageFirst) >= MESSAGEBUFFERSIZE then
-                messageFirst = messageNext - MESSAGEBUFFERSIZE
-            end
-            messageLatestTimestamp = getTime()
-        end
-    end
+local function printLabel(row, val, attr)
+    local y = row * debugRowHeight - 6
+    lcd.drawText(0, y, "Flight #", SMLSIZE + attr)
+    lcd.drawText(lcd.getLastPos(), y, val, SMLSIZE + attr)
 end
 
-function getTextMessage()
-    local returnValue = ""
-    local messageWord = getValue("rpm")
-
-    if messageWord ~= previousMessageWord then
-        local highByte = bit32.rshift(messageWord, 7)
-        highByte = bit32.band(highByte, 127)
-        local lowByte = bit32.band(messageWord, 127)
-
-        if highByte ~= 0 then
-            if highByte >= 48 and highByte <= 57 and messageBuffer == "" then
-                messagePriority = highByte - 48
-            else
-              messageBuffer = messageBuffer .. char(highByte)
-              messageBufferSize = messageBufferSize + 1
-            end
-            if lowByte ~= 0 then
-                messageBuffer = messageBuffer .. char(lowByte)
-                messageBufferSize = messageBufferSize + 1
-            end
-        end
-        if highByte == 0 or lowByte == 0 then
-          returnValue = messageBuffer
-          messageBuffer = ""
-          messageBufferSize = 0
-        end
-        previousMessageWord = messageWord        
-    end
-    return returnValue
+local function printNum(col, row, token, precision, attr)
+	local val = token
+    val = math.floor(val * precision) / precision
+	local x = col
+    local y = row * debugRowHeight - 6
+    lcd.drawText(x, y, val, SMLSIZE + attr)
 end
-
-local function drawTopPanel()
-    local apmarmed = getValue(210)%0x02
-
-    lcd.drawFilledRectangle(0, 0, 212, 9, 0)
-  
-    local flightModeNumber = getValue("fuel") + 1
-    if flightModeNumber < 1 or flightModeNumber > 17 then
-        flightModeNumber = 13
-    end
-
-      if apmarmed==1 then
-        lcd.drawText(1, 0, (FlightMode[flightModeNumber]), INVERS)
-      else
-        lcd.drawText(1, 0, (FlightMode[flightModeNumber]), INVERS+BLINK)
-      end
-
-    lcd.drawTimer(lcd.getLastPos() + 10, 0, model.getTimer(0).value, INVERS)
-
-    lcd.drawText(134, 0, "TX:", INVERS)
-    lcd.drawNumber(160, 0, getValue(189)*10,0+PREC1+INVERS)
-    lcd.drawText(lcd.getLastPos(), 0, "v", INVERS)
-      
-    lcd.drawText(172, 0, "rssi:", INVERS)
-    lcd.drawNumber(lcd.getLastPos()+10, 0, getValue(200),0+INVERS)   
+		 
+local function printmah(col, row, token, attr)
+	local val = token
+	local x = col
+    local y = row * debugRowHeight - 6
+    lcd.drawText(x, y, val, SMLSIZE + attr)
+    lcd.drawText(lcd.getLastPos(), y, "mAh", SMLSIZE + attr)
 end
-
-local function drawBottomPanel()
-    local footerMessage = getTextMessage()
-    lcd.drawFilledRectangle(0, 54, 212, 63, 0)
-    lcd.drawText(2, 55, footerMessage, INVERS)
-end
-    
+		 
 local function background() 
 end
 
-local function run(event)
-    local loopStartTime = getTime()
-    if loopStartTime > (lastTime + 100) then
-        checkForNewMessage()
-        lastTime = loopStartTime
-    end 
-    checkForNewMessage()
-    
-    lcd.clear()
-    drawTopPanel()
-    local i
-    local row = 1
-    for i = messageFirst, messageNext - 1, 1 do
---            lcd.drawText(1, row * 10 + 2, "abc " .. i .. " " .. messageFirst .. " " .. messageNext, 0)
-        lcd.drawText(1, row * 10 + 2, messageArray[(i % MESSAGEBUFFERSIZE) + 1], 0)
-        row = row + 1
-    end
+local function init() 
+	local capacity = model.getGlobalVariable(8, 3)
+
+	if capacity == 0 then
+		model.setGlobalVariable(8,3,28)
+	end
+
+	local match = 0
+	capacity = model.getGlobalVariable(8, 0)
+	if capacity == 0 then
+		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
+	end
+	for i = 0, 3, 1 do
+		if capacity == model.getGlobalVariable(8, 3 + i) then
+			match = 1
+			break
+		end
+	end
+	if match == 0 then
+		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
+	end
+
+	for i = 0, 3, 1 do
+		if model.getGlobalVariable(8, 0) == model.getGlobalVariable(8, 3 + i) then
+			batteryIndex = i
+			break
+		end
+	end
 end
 
-return {run=run, background=background}
+local function run(event)
+	lcd.clear()
+
+	local attr = 0
+	for i = 0, 7, 1 do
+		local attr = 0
+		local j = i + 1
+--		if (i + 1)%2 == 1 then
+--			attr = INVERS
+--		end
+
+		printLabel(j, j, attr)
+
+		if model.getGlobalVariable(2, i) > 0 then
+			printTimer(lcd.getLastPos() + 5 + debugColSpacing, j, model.getGlobalVariable(0, i) * 60 + model.getGlobalVariable(1, i), attr)
+			printmah(lcd.getLastPos() + debugColSpacing, j, model.getGlobalVariable(2, i) * 10, attr)
+			printmah(117 + debugColSpacing, j, model.getGlobalVariable(3, i) * 10, attr)
+			printText(158 + debugColSpacing, j, math.floor(model.getGlobalVariable(3, i) / model.getGlobalVariable(2, i) * 1000 + 0.5 ) / 10, attr)
+			printText(lcd.getLastPos(), j, "%", attr)
+		end
+	end
+
+	switch = getValue(99)
+	local capacity = model.getGlobalVariable(8, 3 + batteryIndex)
+	if oldSwitch ~= switch and switch > 0 then
+
+		batteryIndex = batteryIndex + 1
+		batteryIndex = batteryIndex % 4
+
+		capacity = model.getGlobalVariable(8, 3 + batteryIndex)
+		if capacity == 0 then
+			batteryIndex = 0
+			capacity = model.getGlobalVariable(8, 3 + batteryIndex)
+		end
+		model.setGlobalVariable(8,0, capacity)
+	end
+	oldSwitch = switch
+
+	printText(0, 9, "Capacity: ", 0)
+	for i = 0, 3, 1 do
+		local val = model.getGlobalVariable(8, 3 + i)
+
+		if val == 0 then			
+			break
+		end
+
+		if val == capacity then
+			attr = INVERS
+		else
+			attr = 0
+		end
+
+		printText(lcd.getLastPos(),9, val * 100, attr)
+		printText(lcd.getLastPos(),9, "mAh", attr)
+		printText(lcd.getLastPos(),9, " ", 0)
+	end
+end
+
+return {run=run, background=background, init=init}

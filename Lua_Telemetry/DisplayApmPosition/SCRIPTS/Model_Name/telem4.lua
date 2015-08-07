@@ -14,138 +14,60 @@
 --  A copy of the GNU General Public License is available at <http://www.gnu.org/licenses/>.
 --    
 
-local debugLabelWidth = 45
+local debugLabelWidth = 60
 local debugRowHeight = 7
-local debugColWidth = 40
-local debugColSpacing = 5
-local switch = getValue(99)
-local oldSwitch = switch
-local batteryIndex = 0
+local debugColWidth = 68
 
-local function printTimer(col, row, token, attr)
-	local val = token
-	local x = col
+local function printData(col, row, label, token)
+	local val = getValue(token)
+	local x = (col - 1) * debugColWidth
     local y = row * debugRowHeight - 6
-    lcd.drawTimer(x, y, val, SMLSIZE + attr)
+    lcd.drawText(x, y, label, SMLSIZE)
+    lcd.drawText(x + debugLabelWidth - 20, y, val, SMLSIZE)
 end
 
-local function printText(col, row, val, attr)
-	local x = col
-    local y = row * debugRowHeight - 6
-    lcd.drawText(x, y, val, SMLSIZE + attr)
-end
-
-local function printLabel(row, val, attr)
-    local y = row * debugRowHeight - 6
-    lcd.drawText(0, y, "Flight #", SMLSIZE + attr)
-    lcd.drawText(lcd.getLastPos(), y, val, SMLSIZE + attr)
-end
-
-local function printNum(col, row, token, precision, attr)
-	local val = token
+local function printNum(col, row, label, token, precision)
+	local val = getValue(token)
     val = math.floor(val * precision) / precision
-	local x = col
+	local x = (col - 1) * debugColWidth
     local y = row * debugRowHeight - 6
-    lcd.drawText(x, y, val, SMLSIZE + attr)
-end
-		 
-local function printmah(col, row, token, attr)
-	local val = token
-	local x = col
-    local y = row * debugRowHeight - 6
-    lcd.drawText(x, y, val, SMLSIZE + attr)
-    lcd.drawText(lcd.getLastPos(), y, "mAh", SMLSIZE + attr)
+    lcd.drawText(x, y, label, SMLSIZE)
+    lcd.drawText(x + debugLabelWidth - 20, y, val, SMLSIZE)
 end
 		 
 local function background() 
 end
 
-local function init() 
-	local capacity = model.getGlobalVariable(8, 3)
-
-	if capacity == 0 then
-		model.setGlobalVariable(8,3,28)
-	end
-
-	local match = 0
-	capacity = model.getGlobalVariable(8, 0)
-	if capacity == 0 then
-		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
-	end
-	for i = 0, 3, 1 do
-		if capacity == model.getGlobalVariable(8, 3 + i) then
-			match = 1
-			break
-		end
-	end
-	if match == 0 then
-		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
-	end
-
-	for i = 0, 3, 1 do
-		if model.getGlobalVariable(8, 0) == model.getGlobalVariable(8, 3 + i) then
-			batteryIndex = i
-			break
-		end
-	end
-end
-
 local function run(event)
 	lcd.clear()
 
-	local attr = 0
-	for i = 0, 7, 1 do
-		local attr = 0
-		local j = i + 1
---		if (i + 1)%2 == 1 then
---			attr = INVERS
---		end
+	printData(1, 1, "a1", "a1")
+	printData(1, 2, "a2", "a2")
+	printData(1, 3, "a3", "a3")
+	printData(1, 4, "a4", "a4")
+	printData(1, 5, "accx", "accx")
+	printData(1, 6, "accy", "accy")
+	printData(1, 7, "accz", "accz")
+	printData(1, 8, "air-spd", "air-speed")
 
-		printLabel(j, j, attr)
+	printData(2, 1, "alt", "altitude")
+	printData(2, 2, "consump", "consumption")
+	printData(2, 3, "current", "current")
+	printData(2, 4, "curr-max", "current-max")
+	printData(2, 5, "distance", "distance")
+	printData(2, 6, "dte", "dte")
+	printData(2, 7, "fuel", "fuel")
+	printData(2, 8, "gps-alt", "gps-altitude")
 
-		if model.getGlobalVariable(2, i) > 0 then
-			printTimer(lcd.getLastPos() + 5 + debugColSpacing, j, model.getGlobalVariable(0, i) * 60 + model.getGlobalVariable(1, i), attr)
-			printmah(lcd.getLastPos() + debugColSpacing, j, model.getGlobalVariable(2, i) * 10, attr)
-			printmah(117 + debugColSpacing, j, model.getGlobalVariable(3, i) * 10, attr)
-			printText(158 + debugColSpacing, j, math.floor(model.getGlobalVariable(3, i) / model.getGlobalVariable(2, i) * 1000 + 0.5 ) / 10, attr)
-			printText(lcd.getLastPos(), j, "%", attr)
-		end
-	end
+	printData(3, 1, "gps-spd", "gps-speed")	
+	printData(3, 2, "heading", "heading")	
+	printNum(3, 3, "lat", "latitude", 10000)	
+	printNum(3, 4, "long", "longitude", 10000)	
+	printData(3, 5, "power", "power")	
+	printData(3, 6, "vert-spd", "vertical-speed")	
+	printData(3, 7, "temp1", "temp1")	
+    printData(3, 8, "temp2", "temp2")
 
-	switch = getValue(99)
-	local capacity = model.getGlobalVariable(8, 3 + batteryIndex)
-	if oldSwitch ~= switch and switch > 0 then
-
-		batteryIndex = batteryIndex + 1
-		batteryIndex = batteryIndex % 4
-
-		capacity = model.getGlobalVariable(8, 3 + batteryIndex)
-		if capacity == 0 then
-			batteryIndex = 0
-			capacity = model.getGlobalVariable(8, 3 + batteryIndex)
-		end
-		model.setGlobalVariable(8,0, capacity)
-	end
-	oldSwitch = switch
-
-	printText(0, 9, "Capacity: ", 0)
-	for i = 0, 3, 1 do
-		local val = model.getGlobalVariable(8, 3 + i)
-
-		if val == 0 then			
-			break
-		end
-
-		if val == capacity then
-			attr = INVERS
-		else
-			attr = 0
-		end
-
-		printText(lcd.getLastPos(),9, val * 100, attr)
-		printText(lcd.getLastPos(),9, "mAh", attr)
-		printText(lcd.getLastPos(),9, " ", 0)
-	end
 end
 
-return {run=run, background=background, init=init}
+return {run=run, background=background}

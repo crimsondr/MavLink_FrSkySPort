@@ -12,62 +12,187 @@
 --  GNU General Public License for more details.
 --
 --  A copy of the GNU General Public License is available at <http://www.gnu.org/licenses/>.
---    
 
-local debugLabelWidth = 60
-local debugRowHeight = 7
-local debugColWidth = 68
+---------------------------------------------------------------------------------------------------      
 
-local function printData(col, row, label, token)
-	local val = getValue(token)
-	local x = (col - 1) * debugColWidth
-    local y = row * debugRowHeight - 6
-    lcd.drawText(x, y, label, SMLSIZE)
-    lcd.drawText(x + debugLabelWidth - 20, y, val, SMLSIZE)
+local FlightMode = {
+            "Stabilize",
+            "Acro",
+            "Altitude Hold",
+            "Auto",
+            "Guided",
+            "Loiter",
+            "Return to launch",
+            "Circle",
+            "Invalid Mode",
+            "Land",
+            "Optical Loiter",
+            "Drift",
+            "Invalid Mode",
+            "Sport",
+            "Flip Mode",
+            "Auto Tune",
+            "Position Hold"}
+local AsciiMap = {
+            "A",
+            "B",
+            "C",
+            "D",
+            "E",
+            "F",
+            "G",
+            "H",
+            "I",
+            "J",
+            "K",
+            "L",
+            "M",
+            "N",
+            "O",
+            "P",
+            "Q",
+            "R",
+            "S",
+            "T",
+            "U",
+            "V",
+            "W",
+            "X",
+            "Y",
+            "Z"}
+
+local MESSAGEBUFFERSIZE = 5
+local messageArray = {}
+local messageFirst = 0
+local messageNext = 0
+local messageLatestTimestamp = 0
+local messageBuffer = ""
+local messageBufferSize = 0
+local previousMessageWord = 0
+local footerMessage = ""
+local messagePriority = -1
+local lastTime = 0
+
+local function char(c) 
+    if c >= 48 and c <= 57 then
+      return "0" + (c - 48)
+    elseif c >= 65 and c <= 90 then
+      return AsciiMap[c - 64]
+    elseif c >= 97 and c <= 122 then 
+      return AsciiMap[c - 96]    
+    elseif c == 32 then
+      return " "
+    elseif c == 46 then
+      return "."
+    else
+      return ""
+    end
 end
 
-local function printNum(col, row, label, token, precision)
-	local val = getValue(token)
-    val = math.floor(val * precision) / precision
-	local x = (col - 1) * debugColWidth
-    local y = row * debugRowHeight - 6
-    lcd.drawText(x, y, label, SMLSIZE)
-    lcd.drawText(x + debugLabelWidth - 20, y, val, SMLSIZE)
+local function getLatestMessage()
+    if messageFirst == messageNext then
+        return ""
+    end
+    return messageArray[((messageNext - 1) % MESSAGEBUFFERSIZE) + 1]
 end
-		 
+
+local function checkForNewMessage()
+    local msg = getTextMessage()
+    if msg ~= "" then
+        if msg ~= getLatestMessage() then
+            messageArray[(messageNext % MESSAGEBUFFERSIZE) + 1] = msg
+            messageNext = messageNext + 1
+            if (messageNext - messageFirst) >= MESSAGEBUFFERSIZE then
+                messageFirst = messageNext - MESSAGEBUFFERSIZE
+            end
+            messageLatestTimestamp = getTime()
+        end
+    end
+end
+
+function getTextMessage()
+    local returnValue = ""
+    local messageWord = getValue("rpm")
+
+    if messageWord ~= previousMessageWord then
+        local highByte = bit32.rshift(messageWord, 7)
+        highByte = bit32.band(highByte, 127)
+        local lowByte = bit32.band(messageWord, 127)
+
+        if highByte ~= 0 then
+            if highByte >= 48 and highByte <= 57 and messageBuffer == "" then
+                messagePriority = highByte - 48
+            else
+              messageBuffer = messageBuffer .. char(highByte)
+              messageBufferSize = messageBufferSize + 1
+            end
+            if lowByte ~= 0 then
+                messageBuffer = messageBuffer .. char(lowByte)
+                messageBufferSize = messageBufferSize + 1
+            end
+        end
+        if highByte == 0 or lowByte == 0 then
+          returnValue = messageBuffer
+          messageBuffer = ""
+          messageBufferSize = 0
+        end
+        previousMessageWord = messageWord        
+    end
+    return returnValue
+end
+
+local function drawTopPanel()
+    local apmarmed = getValue(210)%0x02
+
+    lcd.drawFilledRectangle(0, 0, 212, 9, 0)
+  
+    local flightModeNumber = getValue("fuel") + 1
+    if flightModeNumber < 1 or flightModeNumber > 17 then
+        flightModeNumber = 13
+    end
+
+      if apmarmed==1 then
+        lcd.drawText(1, 0, (FlightMode[flightModeNumber]), INVERS)
+      else
+        lcd.drawText(1, 0, (FlightMode[flightModeNumber]), INVERS+BLINK)
+      end
+
+    lcd.drawTimer(lcd.getLastPos() + 10, 0, model.getTimer(0).value, INVERS)
+
+    lcd.drawText(134, 0, "TX:", INVERS)
+    lcd.drawNumber(160, 0, getValue(189)*10,0+PREC1+INVERS)
+    lcd.drawText(lcd.getLastPos(), 0, "v", INVERS)
+      
+    lcd.drawText(172, 0, "rssi:", INVERS)
+    lcd.drawNumber(lcd.getLastPos()+10, 0, getValue(200),0+INVERS)   
+end
+
+local function drawBottomPanel()
+    local footerMessage = getTextMessage()
+    lcd.drawFilledRectangle(0, 54, 212, 63, 0)
+    lcd.drawText(2, 55, footerMessage, INVERS)
+end
+    
 local function background() 
 end
 
 local function run(event)
-	lcd.clear()
-
-	printData(1, 1, "a1", "a1")
-	printData(1, 2, "a2", "a2")
-	printData(1, 3, "a3", "a3")
-	printData(1, 4, "a4", "a4")
-	printData(1, 5, "accx", "accx")
-	printData(1, 6, "accy", "accy")
-	printData(1, 7, "accz", "accz")
-	printData(1, 8, "air-spd", "air-speed")
-
-	printData(2, 1, "alt", "altitude")
-	printData(2, 2, "consump", "consumption")
-	printData(2, 3, "current", "current")
-	printData(2, 4, "curr-max", "current-max")
-	printData(2, 5, "distance", "distance")
-	printData(2, 6, "dte", "dte")
-	printData(2, 7, "fuel", "fuel")
-	printData(2, 8, "gps-alt", "gps-altitude")
-
-	printData(3, 1, "gps-spd", "gps-speed")	
-	printData(3, 2, "heading", "heading")	
-	printNum(3, 3, "lat", "latitude", 10000)	
-	printNum(3, 4, "long", "longitude", 10000)	
-	printData(3, 5, "power", "power")	
-	printData(3, 6, "vert-spd", "vertical-speed")	
-	printData(3, 7, "temp1", "temp1")	
-    printData(3, 8, "temp2", "temp2")
-
+    local loopStartTime = getTime()
+    if loopStartTime > (lastTime + 100) then
+        checkForNewMessage()
+        lastTime = loopStartTime
+    end 
+    checkForNewMessage()
+    
+    lcd.clear()
+    drawTopPanel()
+    local i
+    local row = 1
+    for i = messageFirst, messageNext - 1, 1 do
+--            lcd.drawText(1, row * 10 + 2, "abc " .. i .. " " .. messageFirst .. " " .. messageNext, 0)
+        lcd.drawText(1, row * 10 + 2, messageArray[(i % MESSAGEBUFFERSIZE) + 1], 0)
+        row = row + 1
+    end
 end
 
 return {run=run, background=background}
