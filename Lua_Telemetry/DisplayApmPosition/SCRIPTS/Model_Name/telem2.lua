@@ -67,26 +67,22 @@ local function init()
 		model.setGlobalVariable(8,3,28)
 	end
 
-	local match = 0
 	capacity = model.getGlobalVariable(8, 0)
 	if capacity == 0 then
-		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
-	end
-	for i = 0, 3, 1 do
-		if capacity == model.getGlobalVariable(8, 3 + i) then
-			match = 1
-			break
-		end
-	end
-	if match == 0 then
-		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
+		capacity = model.getGlobalVariable(8, 3)
+		model.setGlobalVariable(8, 0, capacity)
 	end
 
+	batteryIndex = -1
 	for i = 0, 3, 1 do
-		if model.getGlobalVariable(8, 0) == model.getGlobalVariable(8, 3 + i) then
+		if capacity == model.getGlobalVariable(8, 3 + i) then
 			batteryIndex = i
 			break
 		end
+	end
+	if batteryIndex == -1 then
+		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
+		batteryIndex = 0
 	end
 end
 
