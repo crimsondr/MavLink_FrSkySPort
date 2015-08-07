@@ -61,25 +61,25 @@ local function background()
 end
 
 local function init() 
-	local capacity = model.getGlobalVariable(8, 3)
-
-	if capacity == 0 then
-		model.setGlobalVariable(8,3,28)
+	-- check that we have at least one configured battery capacity
+	if model.getGlobalVariable(8, 3) == 0 then
+		model.setGlobalVariable(8, 3, 28)
 	end
 
-	capacity = model.getGlobalVariable(8, 0)
-	if capacity == 0 then
-		capacity = model.getGlobalVariable(8, 3)
-		model.setGlobalVariable(8, 0, capacity)
-	end
-
+	local capacity = model.getGlobalVariable(8, 0)
 	batteryIndex = -1
-	for i = 0, 3, 1 do
-		if capacity == model.getGlobalVariable(8, 3 + i) then
-			batteryIndex = i
-			break
+
+	-- look for the matching index for the configured battery
+	if capacity > 0 then
+		for i = 0, 3, 1 do
+			if capacity == model.getGlobalVariable(8, 3 + i) then
+				batteryIndex = i
+				break
+			end
 		end
 	end
+
+	-- reset invalid battery setting to this first configured capacity
 	if batteryIndex == -1 then
 		model.setGlobalVariable(8, 0, model.getGlobalVariable(8, 3) )
 		batteryIndex = 0
