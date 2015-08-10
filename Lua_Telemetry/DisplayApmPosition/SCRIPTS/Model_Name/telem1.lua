@@ -587,7 +587,7 @@
 	end
 
 	local function save_stats()		
-		if statsRolled == 1 then
+		if statsRolled == 1 and rssi > 0 then
 			local timerValue = model.getTimer(1).value
 			model.setGlobalVariable(0, 0, math.floor(timerValue / 60) )
 			model.setGlobalVariable(1, 0, timerValue - model.getGlobalVariable(0, 0) * 60 )
