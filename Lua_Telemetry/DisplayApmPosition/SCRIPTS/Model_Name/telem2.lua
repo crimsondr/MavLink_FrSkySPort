@@ -41,12 +41,10 @@ local function printLabel(row, val, attr)
     lcd.drawText(lcd.getLastPos(), y, val, SMLSIZE + attr)
 end
 
-local function printNum(col, row, token, precision, attr)
-	local val = token
-    val = math.floor(val * precision) / precision
+local function printNum(col, row, val, attr)
 	local x = col
     local y = row * debugRowHeight - 6
-    lcd.drawText(x, y, val, SMLSIZE + attr)
+    lcd.drawNumber(x, y, val, SMLSIZE + attr)
 end
 		 
 local function printmah(col, row, token, attr)
@@ -103,7 +101,7 @@ local function run(event)
 			printTimer(lcd.getLastPos() + 5 + debugColSpacing, j, model.getGlobalVariable(0, i) * 60 + model.getGlobalVariable(1, i), attr)
 			printmah(lcd.getLastPos() + debugColSpacing, j, model.getGlobalVariable(2, i) * 10, attr)
 			printmah(117 + debugColSpacing, j, model.getGlobalVariable(3, i) * 10, attr)
-			printText(158 + debugColSpacing, j, math.floor(model.getGlobalVariable(3, i) / model.getGlobalVariable(2, i) * 1000 + 0.5 ) / 10, attr)
+			printNum(178 + debugColSpacing, j, math.floor(model.getGlobalVariable(3, i) / model.getGlobalVariable(2, i) * 1000 + 0.5 ), attr + PREC1)
 			printText(lcd.getLastPos(), j, "%", attr)
 		end
 	end
