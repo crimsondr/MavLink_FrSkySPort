@@ -467,19 +467,16 @@
 	  t2 = getValue(210)
 	  apmarmed = t2%0x02
 	 
-	  --prearmheading =63
-	  if apmarmed ~=1 then -- report last heading bevor arming. this can used for display position relative to copter
-	    prearmheading=getValue(223)
-	    pilotlat = math.rad(getValue("latitude"))
-	    pilotlon = math.rad(getValue("longitude"))
-	  end
-	  
 	  if lastarmed~=apmarmed then
 	    lastarmed=apmarmed
 	    if apmarmed==1 then
 	      playFile("SOUNDS/en/SARM.wav")
 	      playFile("/SOUNDS/en/AVFM"..(FmodeNr-1).."A.wav")
 	      
+		  -- report heading when arming. this can used for display position relative to copter
+	      prearmheading=getValue(223)
+	      pilotlat = math.rad(getValue("latitude"))
+		  pilotlon = math.rad(getValue("longitude"))
 	    else
 	      
 	      playFile("SOUNDS/en/SDISAR.wav")
