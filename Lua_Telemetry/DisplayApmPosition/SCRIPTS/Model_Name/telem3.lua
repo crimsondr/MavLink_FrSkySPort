@@ -71,7 +71,6 @@ local messageBufferSize = 0
 local previousMessageWord = 0
 local footerMessage = ""
 local messagePriority = -1
-local lastTime = 0
 
 local function char(c) 
     if c >= 48 and c <= 57 then
@@ -174,16 +173,12 @@ local function drawBottomPanel()
 end
     
 local function background() 
+    checkForNewMessage()
 end
 
 local function run(event)
-    local loopStartTime = getTime()
-    if loopStartTime > (lastTime + 100) then
-        checkForNewMessage()
-        lastTime = loopStartTime
-    end 
-    checkForNewMessage()
-    
+    background()
+   
     lcd.clear()
     drawTopPanel()
     local i
